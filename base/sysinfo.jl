@@ -441,7 +441,7 @@ Return `true` if the given `path` has executable permissions.
 
 !!! note
     Prior to Julia 1.4, this did not correctly interrogate filesystem
-    ACLs on Windows, therefore it would return `true` for any extant
+    ACLs on Windows, therefore it would return `true` for any
     file.  From Julia 1.4 on, it correctly determines whether the
     file is marked as executable or not.
 """
