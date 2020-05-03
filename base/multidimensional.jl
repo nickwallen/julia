@@ -937,56 +937,6 @@ function fill!(A::AbstractArray{T}, x) where T
     A
 end
 
-"""
-    copyto!(dest::AbstractArray, src) -> dest
-
-
-Copy all elements from collection `src` to array `dest`, whose length must be greater than
-or equal to the length `n` of `src`. The first `n` elements of `dest` are overwritten,
-the other elements are left untouched.
-
-# Examples
-```jldoctest
-julia> x = [1., 0., 3., 0., 5.];
-
-julia> y = zeros(7);
-
-julia> copyto!(y, x);
-
-julia> y
-7-element Array{Float64,1}:
- 1.0
- 0.0
- 3.0
- 0.0
- 5.0
- 0.0
- 0.0
-```
-"""
-copyto!(dest, src)
-
-function copyto!(dest::AbstractArray{T1,N}, src::AbstractArray{T2,N}) where {T1,T2,N}
-    isempty(src) && return dest
-    src′ = unalias(dest, src)
-    # fastpath for equal axes (#34025)
-    if axes(dest) == axes(src)
-        for I in eachindex(IndexStyle(src′,dest), src′)
-            @inbounds dest[I] = src′[I]
-        end
-    # otherwise enforce linear indexing
-    else
-        isrc = eachindex(IndexLinear(), src)
-        idest = eachindex(IndexLinear(), dest)
-        ΔI = first(idest) - first(isrc)
-        checkbounds(dest, last(isrc) + ΔI)
-        for I in isrc
-            @inbounds dest[I + ΔI] = src′[I]
-        end
-    end
-    return dest
-end
-
 function copyto!(dest::AbstractArray{T1,N}, Rdest::CartesianIndices{N},
                   src::AbstractArray{T2,N}, Rsrc::CartesianIndices{N}) where {T1,T2,N}
     isempty(Rdest) && return dest
