@@ -570,7 +570,7 @@ julia> collect(Float64, 1:2:5)
  5.0
 ```
 """
-collect(::Type{T}, itr) where {T} = _collect(T, itr, IteratorSize(itr))
+collect(::Type{T}, itr) where {T} = _collect(T, itr, iteratorsize(typeof(itr)))
 
 _collect(::Type{T}, itr, isz::HasLength) where {T} = copyto!(Vector{T}(undef, Int(length(itr)::Integer)), itr)
 _collect(::Type{T}, itr, isz::HasShape) where {T}  = copyto!(similar(Array{T}, axes(itr)), itr)
@@ -611,11 +611,11 @@ julia> collect(1:2:13)
  13
 ```
 """
-collect(itr) = _collect(1:1 #= Array =#, itr, IteratorEltype(itr), IteratorSize(itr))
+collect(itr) = _collect(1:1 #= Array =#, itr, iteratoreltype(typeof(itr)), iteratorsize(typeof(itr)))
 
 collect(A::AbstractArray) = _collect_indices(axes(A), A)
 
-collect_similar(cont, itr) = _collect(cont, itr, IteratorEltype(itr), IteratorSize(itr))
+collect_similar(cont, itr) = _collect(cont, itr, iteratoreltype(typeof(itr)), iteratorsize(typeof(itr)))
 
 _collect(cont, itr, ::HasEltype, isz::Union{HasLength,HasShape}) =
     copyto!(_similar_for(cont, eltype(itr), itr, isz), itr)

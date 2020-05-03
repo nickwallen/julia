@@ -89,13 +89,19 @@ Base.HasLength()
 """
 IteratorSize(x) = IteratorSize(typeof(x))
 IteratorSize(::Type) = HasLength()  # HasLength is the default
+# Many compiled methods iterate on tuples, but MethodInstances for
+#    IteratorSize(::Type{Tuple{...}})
+# are easily invalidated by method-table insertions because they call
+# the fallback. Calling iteratorsize instead of IteratorSize bypasses
+# this problem. Don't add methods to iteratorsize.
+iteratorsize(::Type{T}) where {T} = T<:Tuple ? HasLength() : IteratorSize(T)
 
 IteratorSize(::Type{<:AbstractArray{<:Any,N}})  where {N} = HasShape{N}()
 IteratorSize(::Type{Generator{I,F}}) where {I,F} = IteratorSize(I)
 
 IteratorSize(::Type{Any}) = SizeUnknown()
 
-haslength(iter) = IteratorSize(iter) isa Union{HasShape, HasLength}
+haslength(iter) = iteratorsize(typeof(iter)) isa Union{HasShape, HasLength}
 
 abstract type IteratorEltype end
 struct EltypeUnknown <: IteratorEltype end
@@ -126,3 +132,9 @@ IteratorEltype(::Type) = HasEltype()  # HasEltype is the default
 IteratorEltype(::Type{Generator{I,T}}) where {I,T} = EltypeUnknown()
 
 IteratorEltype(::Type{Any}) = EltypeUnknown()
+
+# See comment for iteratorsize re invalidation
+function iteratoreltype(::Type{T}) where T
+    T<:(Tuple{Vararg{X}} where X) ? HasEltype() :
+        T<:Tuple ? EltypeUnknown() : IteratorEltype(T)
+end
