@@ -285,6 +285,7 @@ Event processing is controlled by overriding functions associated with
 
 ```@docs
 Logging.AbstractLogger
+Logging.UncaughtExceptionLogger
 Logging.handle_message
 Logging.shouldlog
 Logging.min_enabled_level

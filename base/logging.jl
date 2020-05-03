@@ -6,6 +6,7 @@ import Base: isless, +, -, convert, show
 
 export
     AbstractLogger,
+    UncaughtExceptionLogger,
     LogLevel,
     NullLogger,
     @debug,
@@ -19,6 +20,7 @@ export
     disable_logging,
     SimpleLogger
 
+
 #-------------------------------------------------------------------------------
 # The AbstractLogger interface
 """
@@ -27,6 +29,13 @@ record is generated, the logger is the first piece of user configurable code
 which gets to inspect the record and decide what to do with it.
 """
 abstract type AbstractLogger ; end
+
+"""
+`UncaughtExceptionLogger` is a abstract logging type that avoids catching exceptions.
+When applicable, you can reduce compile-time latency by deriving your custom logging
+type from it, rather than from [`AbstractLogger`](@ref).
+"""
+abstract type UncaughtExceptionLogger <: AbstractLogger ; end
 
 """
     handle_message(logger, level, message, _module, group, id, file, line; key1=val1, ...)
@@ -59,16 +68,17 @@ function min_enabled_level end
     catch_exceptions(logger)
 
 Return true if the logger should catch exceptions which happen during log
-record construction.  By default, messages are caught
+record construction.  By default, messages are caught.
 
 By default all exceptions are caught to prevent log message generation from
 crashing the program.  This lets users confidently toggle little-used
 functionality - such as debug logging - in a production system.
 
 If you want to use logging as an audit trail you should disable this for your
-logger type.
+logger type. See also [`UncaughtExceptionLogger`](@ref).
 """
 catch_exceptions(logger) = true
+catch_exceptions(::UncaughtExceptionLogger) = false
 
 
 
@@ -84,6 +94,7 @@ min_enabled_level(::NullLogger) = AboveMaxLevel
 shouldlog(::NullLogger, args...) = false
 handle_message(::NullLogger, args...; kwargs...) =
     error("Null logger handle_message() should not be called")
+catch_exceptions(::NullLogger) = true   # to prevent invalidation
 
 
 #-------------------------------------------------------------------------------

@@ -42,6 +42,8 @@ shouldlog(logger::ConsoleLogger, level, _module, group, id) =
 
 min_enabled_level(logger::ConsoleLogger) = logger.min_level
 
+catch_exceptions(::ConsoleLogger) = true   # to prevent invalidation
+
 # Formatting of values in key value pairs
 showvalue(io, msg) = show(io, "text/plain", msg)
 function showvalue(io, e::Tuple{Exception,Any})
@@ -161,4 +163,3 @@ function handle_message(logger::ConsoleLogger, level, message, _module, group, i
     write(logger.stream, take!(buf))
     nothing
 end
-
